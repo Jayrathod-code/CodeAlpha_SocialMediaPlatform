@@ -11,15 +11,18 @@ function App() {
   const [activePage, setActivePage] =
     useState("home");
 
-  const [newPost, setNewPost] = useState("");
+  const [newPost, setNewPost] =
+    useState("");
+
   const [commentText, setCommentText] =
     useState({});
 
-  // Post menu / edit states
   const [openMenu, setOpenMenu] =
     useState(null);
+
   const [editingPost, setEditingPost] =
     useState(null);
+
   const [editText, setEditText] =
     useState("");
 
@@ -30,28 +33,35 @@ function App() {
   const [authMode, setAuthMode] =
     useState("login");
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] =
+    useState("");
+
   const [password, setPassword] =
     useState("");
 
   const [registerName, setRegisterName] =
     useState("");
+
   const [registerUsername, setRegisterUsername] =
     useState("");
+
   const [registerEmail, setRegisterEmail] =
     useState("");
+
   const [registerPassword, setRegisterPassword] =
     useState("");
+
   const [registerBio, setRegisterBio] =
     useState("");
 
   const [loading, setLoading] =
     useState(false);
+
   const [message, setMessage] =
     useState("");
 
   // ==========================================
-  // GET TOKEN
+  // TOKEN
   // ==========================================
 
   const getToken = () => {
@@ -61,7 +71,7 @@ function App() {
   };
 
   // ==========================================
-  // LOAD USERS + POSTS
+  // LOAD DATA
   // ==========================================
 
   const loadData = async (
@@ -112,7 +122,7 @@ function App() {
   };
 
   // ==========================================
-  // CHECK LOGIN
+  // RESTORE LOGIN
   // ==========================================
 
   useEffect(() => {
@@ -148,8 +158,10 @@ function App() {
           }
         );
 
-      const { token, user } =
-        response.data;
+      const {
+        token,
+        user,
+      } = response.data;
 
       localStorage.setItem(
         "connecthub_token",
@@ -210,8 +222,10 @@ function App() {
           }
         );
 
-      const { token, user } =
-        response.data;
+      const {
+        token,
+        user,
+      } = response.data;
 
       localStorage.setItem(
         "connecthub_token",
@@ -275,46 +289,46 @@ function App() {
   // CREATE POST
   // ==========================================
 
-  const handleCreatePost =
-    async () => {
-      if (!newPost.trim()) {
-        return;
-      }
+  const handleCreatePost = async () => {
+    if (!newPost.trim()) {
+      return;
+    }
 
-      try {
-        const response =
-          await API.post(
-            "/posts",
-            {
-              text: newPost.trim(),
+    try {
+      const response =
+        await API.post(
+          "/posts",
+          {
+            text: newPost.trim(),
+          },
+          {
+            headers: {
+              Authorization:
+                `Bearer ${getToken()}`,
             },
-            {
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
-            }
-          );
-
-        setPosts([
-          response.data.post,
-          ...posts,
-        ]);
-
-        setNewPost("");
-      } catch (error) {
-        console.error(
-          "Create post error:",
-          error
+          }
         );
 
-        if (
-          error.response?.status ===
-          401
-        ) {
-          handleLogout();
-        }
+      setPosts([
+        response.data.post,
+        ...posts,
+      ]);
+
+      setNewPost("");
+    } catch (error) {
+      console.error(
+        "Create post error:",
+        error
+      );
+
+      if (
+        error.response?.status ===
+        401
+      ) {
+        handleLogout();
       }
-    };
+    }
+  };
 
   // ==========================================
   // LIKE / UNLIKE
@@ -330,14 +344,17 @@ function App() {
           {},
           {
             headers: {
-              Authorization: `Bearer ${getToken()}`,
+              Authorization:
+                `Bearer ${getToken()}`,
             },
           }
         );
 
       setPosts(
         posts.map((post) => {
-          if (post._id !== postId) {
+          if (
+            post._id !== postId
+          ) {
             return post;
           }
 
@@ -345,7 +362,9 @@ function App() {
             ...(post.likes || []),
           ];
 
-          if (response.data.liked) {
+          if (
+            response.data.liked
+          ) {
             updatedLikes.push(
               currentUser._id
             );
@@ -398,7 +417,8 @@ function App() {
           },
           {
             headers: {
-              Authorization: `Bearer ${getToken()}`,
+              Authorization:
+                `Bearer ${getToken()}`,
             },
           }
         );
@@ -427,53 +447,53 @@ function App() {
   // DELETE COMMENT
   // ==========================================
 
-  const handleDeleteComment =
-    async (
-      postId,
-      commentId
-    ) => {
-      const confirmDelete =
-        window.confirm(
-          "Are you sure you want to delete this comment?"
+  const handleDeleteComment = async (
+    postId,
+    commentId
+  ) => {
+    const confirmDelete =
+      window.confirm(
+        "Are you sure you want to delete this comment?"
+      );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const response =
+        await API.delete(
+          `/posts/${postId}/comments/${commentId}`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${getToken()}`,
+            },
+          }
         );
 
-      if (!confirmDelete) {
-        return;
-      }
+      setPosts(
+        posts.map((post) =>
+          post._id === postId
+            ? response.data.post
+            : post
+        )
+      );
 
-      try {
-        const response =
-          await API.delete(
-            `/posts/${postId}/comments/${commentId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
-            }
-          );
+      setOpenCommentMenu(null);
+    } catch (error) {
+      console.error(
+        "Delete comment error:",
+        error
+      );
 
-        setPosts(
-          posts.map((post) =>
-            post._id === postId
-              ? response.data.post
-              : post
-          )
-        );
-
-        setOpenCommentMenu(null);
-      } catch (error) {
-        console.error(
-          "Delete comment error:",
-          error
-        );
-
-        alert(
-          error.response?.data
-            ?.message ||
-            "Unable to delete comment"
-        );
-      }
-    };
+      alert(
+        error.response?.data
+          ?.message ||
+          "Unable to delete comment"
+      );
+    }
+  };
 
   // ==========================================
   // FOLLOW / UNFOLLOW
@@ -488,7 +508,8 @@ function App() {
         {},
         {
           headers: {
-            Authorization: `Bearer ${getToken()}`,
+            Authorization:
+              `Bearer ${getToken()}`,
           },
         }
       );
@@ -510,101 +531,103 @@ function App() {
   // EDIT POST
   // ==========================================
 
-  const handleEditPost =
-    async () => {
-      if (
-        !editingPost ||
-        !editText.trim()
-      ) {
-        return;
-      }
+  const handleEditPost = async () => {
+    if (
+      !editingPost ||
+      !editText.trim()
+    ) {
+      return;
+    }
 
-      try {
-        const response =
-          await API.put(
-            `/posts/${editingPost._id}`,
-            {
-              text: editText.trim(),
+    try {
+      const response =
+        await API.put(
+          `/posts/${editingPost._id}`,
+          {
+            text: editText.trim(),
+          },
+          {
+            headers: {
+              Authorization:
+                `Bearer ${getToken()}`,
             },
-            {
-              headers: {
-                Authorization: `Bearer ${getToken()}`,
-              },
-            }
-          );
-
-        setPosts(
-          posts.map((post) =>
-            post._id ===
-            editingPost._id
-              ? response.data.post
-              : post
-          )
+          }
         );
 
-        setEditingPost(null);
-        setEditText("");
-        setOpenMenu(null);
-      } catch (error) {
-        console.error(
-          "Edit post error:",
-          error
-        );
+      setPosts(
+        posts.map((post) =>
+          post._id ===
+          editingPost._id
+            ? response.data.post
+            : post
+        )
+      );
 
-        alert(
-          error.response?.data
-            ?.message ||
-            "Unable to edit post"
-        );
-      }
-    };
+      setEditingPost(null);
+      setEditText("");
+      setOpenMenu(null);
+    } catch (error) {
+      console.error(
+        "Edit post error:",
+        error
+      );
+
+      alert(
+        error.response?.data
+          ?.message ||
+          "Unable to edit post"
+      );
+    }
+  };
 
   // ==========================================
   // DELETE POST
   // ==========================================
 
-  const handleDeletePost =
-    async (postId) => {
-      const confirmDelete =
-        window.confirm(
-          "Are you sure you want to delete this post?"
-        );
+  const handleDeletePost = async (
+    postId
+  ) => {
+    const confirmDelete =
+      window.confirm(
+        "Are you sure you want to delete this post?"
+      );
 
-      if (!confirmDelete) {
-        return;
-      }
+    if (!confirmDelete) {
+      return;
+    }
 
-      try {
-        await API.delete(
-          `/posts/${postId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${getToken()}`,
-            },
-          }
-        );
+    try {
+      await API.delete(
+        `/posts/${postId}`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${getToken()}`,
+          },
+        }
+      );
 
-        setPosts(
-          posts.filter(
-            (post) =>
-              post._id !== postId
-          )
-        );
+      setPosts(
+        posts.filter(
+          (post) =>
+            post._id !== postId
+        )
+      );
 
-        setOpenMenu(null);
-      } catch (error) {
-        console.error(
-          "Delete post error:",
-          error
-        );
+      setOpenMenu(null);
+    } catch (error) {
+      console.error(
+        "Delete post error:",
+        error
+      );
 
-        alert(
-          error.response?.data
-            ?.message ||
-            "Unable to delete post"
-        );
-      }
-    };
+      alert(
+        error.response?.data
+          ?.message ||
+          "Unable to delete post"
+      );
+    }
+  };
 
   // ==========================================
   // REPORT POST
@@ -684,9 +707,7 @@ function App() {
                 }
               >
                 <input
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   type="email"
                   placeholder="Email"
                   value={email}
@@ -699,9 +720,7 @@ function App() {
                 />
 
                 <input
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   type="password"
                   placeholder="Password"
                   value={
@@ -736,9 +755,7 @@ function App() {
                 }
               >
                 <input
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   placeholder="Full Name"
                   value={
                     registerName
@@ -752,9 +769,7 @@ function App() {
                 />
 
                 <input
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   placeholder="Username"
                   value={
                     registerUsername
@@ -768,9 +783,7 @@ function App() {
                 />
 
                 <input
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   type="email"
                   placeholder="Email"
                   value={
@@ -785,9 +798,7 @@ function App() {
                 />
 
                 <input
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   type="password"
                   placeholder="Password"
                   value={
@@ -802,9 +813,7 @@ function App() {
                 />
 
                 <textarea
-                  style={
-                    inputStyle
-                  }
+                  style={inputStyle}
                   placeholder="Bio"
                   value={
                     registerBio
@@ -901,7 +910,7 @@ function App() {
   }
 
   // ==========================================
-  // MAIN CONNECTHUB
+  // MAIN APP
   // ==========================================
 
   return (
@@ -910,6 +919,7 @@ function App() {
       {/* NAVBAR */}
 
       <header className="navbar">
+
         <div className="logo">
           <span className="logo-icon">
             C
@@ -921,6 +931,7 @@ function App() {
         </div>
 
         <div className="nav-links">
+
           <button
             className={
               activePage ===
@@ -968,6 +979,7 @@ function App() {
           >
             👤 Profile
           </button>
+
         </div>
 
         <div
@@ -978,6 +990,7 @@ function App() {
             gap: "12px",
           }}
         >
+
           <button
             className="profile-mini"
             onClick={() =>
@@ -1006,6 +1019,7 @@ function App() {
           >
             Logout
           </button>
+
         </div>
       </header>
 
@@ -1027,6 +1041,7 @@ function App() {
             padding: "20px",
           }}
         >
+
           <div
             className="card"
             style={{
@@ -1035,6 +1050,7 @@ function App() {
               padding: "25px",
             }}
           >
+
             <h2>
               Edit Post ✏️
             </h2>
@@ -1077,6 +1093,7 @@ function App() {
                   "15px",
               }}
             >
+
               <button
                 onClick={() => {
                   setEditingPost(
@@ -1101,6 +1118,7 @@ function App() {
               >
                 Save Changes
               </button>
+
             </div>
           </div>
         </div>
@@ -1119,7 +1137,9 @@ function App() {
             {/* LEFT SIDEBAR */}
 
             <aside className="sidebar left-sidebar">
+
               <div className="profile-card">
+
                 <div className="cover"></div>
 
                 <div className="profile-card-content">
@@ -1343,6 +1363,7 @@ function App() {
 
                           {openMenu ===
                             post._id && (
+
                             <div
                               style={{
                                 position:
@@ -1420,7 +1441,6 @@ function App() {
                           )}
 
                         </div>
-
                       </div>
 
                       {/* POST CONTENT */}
@@ -1527,8 +1547,7 @@ function App() {
                                 <div
                                   className="comment-body"
                                   style={{
-                                    flex:
-                                      1,
+                                    flex: 1,
                                   }}
                                 >
 
@@ -1576,6 +1595,7 @@ function App() {
 
                                     {openCommentMenu ===
                                       commentMenuId && (
+
                                       <div
                                         style={{
                                           position:
@@ -1644,18 +1664,13 @@ function App() {
                               ""
                             }
                             onChange={(e) =>
-                              setCommentText(
-                                {
-                                  ...commentText,
-                                  [post._id]:
-                                    e.target
-                                      .value,
-                                }
-                              )
+                              setCommentText({
+                                ...commentText,
+                                [post._id]:
+                                  e.target.value,
+                              })
                             }
-                            onKeyDown={(
-                              e
-                            ) => {
+                            onKeyDown={(e) => {
                               if (
                                 e.key ===
                                 "Enter"
@@ -1915,7 +1930,6 @@ function App() {
                         )}
 
                       </div>
-
                     </div>
                   );
                 }
@@ -1976,7 +1990,6 @@ function App() {
               <div className="profile-detail-grid">
 
                 <div>
-
                   <strong>
                     {currentUser
                       .followers
@@ -1987,11 +2000,9 @@ function App() {
                   <span>
                     Followers
                   </span>
-
                 </div>
 
                 <div>
-
                   <strong>
                     {currentUser
                       .following
@@ -2002,11 +2013,9 @@ function App() {
                   <span>
                     Following
                   </span>
-
                 </div>
 
                 <div>
-
                   <strong>
                     {
                       posts.filter(
@@ -2020,7 +2029,6 @@ function App() {
                   <span>
                     Posts
                   </span>
-
                 </div>
 
               </div>
@@ -2068,7 +2076,7 @@ function App() {
 }
 
 // ==========================================
-// INLINE STYLES
+// STYLES
 // ==========================================
 
 const inputStyle = {
@@ -2096,18 +2104,28 @@ const primaryButtonStyle = {
 
 const linkButtonStyle = {
   border: "none",
-  background:
-    "transparent",
+  background: "transparent",
   cursor: "pointer",
   fontWeight: "700",
 };
 
+/*
+  LOGOUT BUTTON
+  Updated so it is clearly visible in the navbar.
+*/
+
 const logoutButtonStyle = {
   border: "none",
-  background:
-    "transparent",
+  background: "#ef4444",
+  color: "#ffffff",
   cursor: "pointer",
-  fontWeight: "600",
+  fontWeight: "700",
+  padding: "9px 16px",
+  borderRadius: "9px",
+  fontSize: "14px",
+  boxShadow:
+    "0 4px 12px rgba(239, 68, 68, 0.25)",
+  transition: "all 0.2s ease",
 };
 
 const menuButtonStyle = {
@@ -2116,8 +2134,7 @@ const menuButtonStyle = {
   textAlign: "left",
   padding: "10px 12px",
   border: "none",
-  background:
-    "transparent",
+  background: "transparent",
   borderRadius: "8px",
   cursor: "pointer",
   fontSize: "14px",
